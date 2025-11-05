@@ -62,26 +62,40 @@ docker pull usersina/vnc-lab-desktop:latest
 docker run -d \
   -p 6080:6080 \
   -p 5901:5901 \
-  -e VNC_PASSWORD=mysecretpass \
+  -e VNC_PASSWORD=password \
   --name vnc-desktop \
   usersina/vnc-lab-desktop:latest
 
-# Access via browser
-# Open: http://localhost:6080
+# Access via a vnc client on 5901
+vncviewer localhost:5901
 ```
 
 ## Accessing the Desktop
 
 Once the container is running, you have two options:
 
-1. **Browser (Recommended)**: Open <http://localhost:6080> in any modern web browser
+1. **Browser with noVNC Client (Recommended)**: Use the [example React app](./example/) or integrate noVNC into your own application
 2. **VNC Client**: Connect to `localhost:5901` using any VNC client (e.g., TigerVNC Viewer, RealVNC)
+
+### Quick Start with Example App
+
+```bash
+# Start VNC container
+docker run -d -p 6080:6080 -e VNC_PASSWORD=password usersina/vnc-lab-desktop
+
+# Run the example React app
+cd example
+npm install
+npm run dev
+```
+
+Then open the example app and click "Connect to Desktop". See [example/README.md](./example/README.md) for details.
 
 ## Environment Variables
 
 | Variable         | Default    | Description                                       |
 | ---------------- | ---------- | ------------------------------------------------- |
-| `VNC_PASSWORD`   | `demo123`  | VNC server password (8 chars max)                 |
+| `VNC_PASSWORD`   | `password` | VNC server password (8 chars max)                 |
 | `VNC_RESOLUTION` | `1280x720` | Desktop resolution                                |
 | `VNC_DEPTH`      | `16`       | Color depth in bits (16 saves memory, looks fine) |
 | `VNC_PORT`       | `5901`     | VNC server port (internal)                        |
@@ -221,8 +235,8 @@ docker exec -it vnc-desktop vncserver -list
 
 ```bash
 # Restart VNC server
-docker exec -it lab-vnc vncserver -kill :1
-docker exec -it lab-vnc vncserver :1 -geometry 1280x720 -depth 16
+docker exec -it vnc-desktop vncserver -kill :1
+docker exec -it vnc-desktop vncserver :1 -geometry 1280x720 -depth 16
 ```
 
 ### IndicatorApplet Error on First Connection
@@ -243,7 +257,7 @@ If `sudo` commands fail:
 
 ```bash
 # Verify labuser has sudo access
-docker exec -it lab-vnc sudo -l
+docker exec -it vnc-desktop sudo -l
 
 # Should show: (ALL) NOPASSWD: ALL
 ```
@@ -387,10 +401,10 @@ git clone https://github.com/usersina/vnc-lab-desktop.git
 cd vnc-lab-desktop
 
 # Build the image
-docker build -t vnc-lab-desktop:dev .
+docker build -t vnc-lab-desktop .
 
 # Run locally
-docker run -d -p 6080:6080 -e VNC_PASSWORD=dev123 vnc-lab-desktop:dev
+docker run -d -p 6080:6080 -p 5901:5901 -e VNC_PASSWORD=password vnc-lab-desktop
 ```
 
 ### Pushing to Registry
@@ -398,11 +412,9 @@ docker run -d -p 6080:6080 -e VNC_PASSWORD=dev123 vnc-lab-desktop:dev
 ```bash
 # Tag image
 docker tag vnc-lab-desktop:latest usersina/vnc-lab-desktop:latest
-docker tag vnc-lab-desktop:latest usersina/vnc-lab-desktop:v1.0.0
 
 # Push to Docker Hub
 docker push usersina/vnc-lab-desktop:latest
-docker push usersina/vnc-lab-desktop:v1.0.0
 ```
 
 ## Contributing

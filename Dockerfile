@@ -81,14 +81,14 @@ RUN wget -O /tmp/firefox.tar.bz2 "https://download.mozilla.org/?product=firefox-
 
 # Create Firefox desktop entry
 RUN echo "[Desktop Entry]\n\
-Name=Firefox\n\
-Comment=Web Browser\n\
-Exec=/opt/firefox/firefox %u\n\
-Icon=/opt/firefox/browser/chrome/icons/default/default128.png\n\
-Terminal=false\n\
-Type=Application\n\
-Categories=Network;WebBrowser;\n\
-MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;" > /usr/share/applications/firefox.desktop
+    Name=Firefox\n\
+    Comment=Web Browser\n\
+    Exec=/opt/firefox/firefox %u\n\
+    Icon=/opt/firefox/browser/chrome/icons/default/default128.png\n\
+    Terminal=false\n\
+    Type=Application\n\
+    Categories=Network;WebBrowser;\n\
+    MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;" > /usr/share/applications/firefox.desktop
 
 # Install kubectl (latest stable version)
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
@@ -110,8 +110,8 @@ USER labuser
 WORKDIR /home/labuser
 
 # Set up VNC password (will be overridden by startup script with dynamic password)
-# Default password: "demo123" (8 characters, VNC password limit)
-RUN echo "demo123" | vncpasswd -f > /home/labuser/.vnc/passwd && \
+# Default password: "password" (8 characters, VNC password limit)
+RUN echo "password" | vncpasswd -f > /home/labuser/.vnc/passwd && \
     chmod 600 /home/labuser/.vnc/passwd
 
 # Configure MATE desktop for VNC
@@ -125,23 +125,23 @@ RUN mkdir -p /home/labuser/.config/mate && \
 RUN mkdir -p /home/labuser/Desktop && \
     # Firefox shortcut
     echo "[Desktop Entry]\n\
-Name=Firefox\n\
-Comment=Web Browser\n\
-Exec=/opt/firefox/firefox %u\n\
-Icon=/opt/firefox/browser/chrome/icons/default/default128.png\n\
-Terminal=false\n\
-Type=Application\n\
-Categories=Network;WebBrowser;" > /home/labuser/Desktop/firefox.desktop && \
+    Name=Firefox\n\
+    Comment=Web Browser\n\
+    Exec=/opt/firefox/firefox %u\n\
+    Icon=/opt/firefox/browser/chrome/icons/default/default128.png\n\
+    Terminal=false\n\
+    Type=Application\n\
+    Categories=Network;WebBrowser;" > /home/labuser/Desktop/firefox.desktop && \
     chmod +x /home/labuser/Desktop/firefox.desktop && \
     # Terminal shortcut
     echo "[Desktop Entry]\n\
-Name=Terminal\n\
-Comment=Use the command line\n\
-Exec=mate-terminal\n\
-Icon=utilities-terminal\n\
-Terminal=false\n\
-Type=Application\n\
-Categories=System;TerminalEmulator;" > /home/labuser/Desktop/mate-terminal.desktop && \
+    Name=Terminal\n\
+    Comment=Use the command line\n\
+    Exec=mate-terminal\n\
+    Icon=utilities-terminal\n\
+    Terminal=false\n\
+    Type=Application\n\
+    Categories=System;TerminalEmulator;" > /home/labuser/Desktop/mate-terminal.desktop && \
     chmod +x /home/labuser/Desktop/mate-terminal.desktop && \
     # Set ownership
     chown -R labuser:labuser /home/labuser/Desktop
