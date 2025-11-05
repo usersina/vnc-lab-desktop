@@ -1,0 +1,21 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Build artifacts
+*.log
+*.tmp
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
