@@ -39,7 +39,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels)
         id: meta
@@ -117,7 +117,7 @@ jobs:
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: usersina/vnc-lab-desktop
           short-description: 'Browser-based Ubuntu desktop with MATE, Firefox, kubectl. Memory-optimized for K8s labs.'
           readme-filepath: ./README.md
