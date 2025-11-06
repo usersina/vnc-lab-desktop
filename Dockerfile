@@ -164,9 +164,15 @@ ENV NOVNC_PORT=6080
 # Expose ports
 EXPOSE 5901 6080
 
-# Health check (verify VNC server is running)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD netstat -an | grep 6080 > /dev/null || exit 1
+# Health check: Verify VNC and websockify ports are listening
+# Universal approach - works with any VNC server implementation
+HEALTHCHECK --interval=10s \
+    --timeout=5s \
+    --start-period=30s \
+    --retries=3 \
+    CMD netstat -tuln | grep -q ':5901 ' && \
+    netstat -tuln | grep -q ':6080 ' || \
+    exit 1
 
 # Start VNC server and websockify
 CMD ["/home/labuser/start-vnc.sh"]

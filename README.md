@@ -60,10 +60,10 @@ docker pull usersina/vnc-lab-desktop:latest
 
 # Run container
 docker run -d \
+  --name vnc-desktop \
   -p 6080:6080 \
   -p 5901:5901 \
   -e VNC_PASSWORD=password \
-  --name vnc-desktop \
   usersina/vnc-lab-desktop:latest
 
 # Access via a vnc client on 5901
@@ -81,7 +81,7 @@ Once the container is running, you have two options:
 
 ```bash
 # Start VNC container
-docker run -d -p 6080:6080 -e VNC_PASSWORD=password usersina/vnc-lab-desktop
+docker run -d --name vnc-desktop -p 6080:6080 -e VNC_PASSWORD=password usersina/vnc-lab-desktop
 
 # Run the example React app
 cd example
@@ -404,7 +404,7 @@ cd vnc-lab-desktop
 docker build -t vnc-lab-desktop .
 
 # Run locally
-docker run -d -p 6080:6080 -p 5901:5901 -e VNC_PASSWORD=password vnc-lab-desktop
+docker run -d --name vnc-desktop -p 6080:6080 -p 5901:5901 -e VNC_PASSWORD=password vnc-lab-desktop
 ```
 
 ### Pushing to Registry

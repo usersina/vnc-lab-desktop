@@ -14,6 +14,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
@@ -22,8 +23,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
 
       - name: Log in to Docker Hub
         if: github.event_name != 'pull_request'
@@ -39,31 +47,77 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha
+            type=sha,format=long
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: Build Docker image for testing
+        id: build-test
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - name: Test image
+        run: |
+          docker run -d \
+            --name vnc-desktop \
+            -p 6080:6080 \
+            -e VNC_PASSWORD=password \
+            ${{ env.IMAGE_NAME }}:test
+
+          echo "Waiting for container to become healthy..."
+          timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}}" vnc-desktop | grep -q healthy; do sleep 2; echo "  Health status: $(docker inspect --format="{{.State.Health.Status}}" vnc-desktop)"; done' || {
+            echo "Container failed to become healthy"
+            docker logs vnc-desktop
+            exit 1
+          }
+
+          echo "=== Container is healthy ==="
+          docker logs vnc-desktop
+
+          echo "=== Checking if websockify is listening on port 6080 ==="
+          docker exec vnc-desktop netstat -tulpn | grep 6080 || exit 1
+
+          echo "=== Checking if VNC server is running ==="
+          docker exec vnc-desktop vncserver -list || exit 1
+
+          echo "=== Checking WebSocket endpoint is responding ==="
+          curl -i -H "Connection: Upgrade" -H "Upgrade: websocket" http://localhost:6080 2>&1 | grep -i "websockify" || exit 1
+
+          echo "=== All tests passed! ==="
+          docker stop vnc-desktop
+          docker rm vnc-desktop
+
+      - name: Build and push multi-platform image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
 
-      - name: Test image
-        if: github.event_name == 'pull_request'
-        run: |
-          docker run -d --name test-vnc -p 6080:6080 -e VNC_PASSWORD=test123 ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
-          sleep 30
-          docker logs test-vnc
-          curl -f http://localhost:6080 || exit 1
-          docker stop test-vnc
-          docker rm test-vnc
+      - name: Update Docker Hub Description
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: usersina/vnc-lab-desktop
+          short-description: 'Browser-based Ubuntu desktop with MATE, Firefox, kubectl. Memory-optimized for K8s labs.'
+          readme-filepath: ./README.md
