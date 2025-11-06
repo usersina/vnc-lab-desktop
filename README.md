@@ -1,6 +1,6 @@
 # VNC Lab Desktop
 
-[![Docker Hub](https://img.shields.io/docker/pulls/usersina/vnc-lab-desktop.svg)](https://hub.docker.com/r/usersina/vnc-lab-desktop)
+[![Docker Hub](https://img.shields.io/docker/pulls/usersina/vnc-lab-desktop)](https://hub.docker.com/r/usersina/vnc-lab-desktop)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A Docker image providing browser-based graphical desktop access for cloud-native labs, training, and remote development. Built on Ubuntu 22.04 with MATE Desktop, optimized for memory efficiency (220Mi idle vs 8Gi typical desktop VNC solutions). Perfect for Kubernetes workshops, CKA/CKAD prep, and scenarios requiring GUI tools.
@@ -56,7 +56,7 @@ Compare to terminal-only image: ~50MB image, ~100-200MB RAM
 
 ```bash
 # Pull the latest image
-docker pull usersina/vnc-lab-desktop:latest
+docker pull usersina/vnc-lab-desktop
 
 # Run container
 docker run -d \
@@ -64,7 +64,7 @@ docker run -d \
   -p 6080:6080 \
   -p 5901:5901 \
   -e VNC_PASSWORD=password \
-  usersina/vnc-lab-desktop:latest
+  usersina/vnc-lab-desktop
 
 # Access via a vnc client on 5901
 vncviewer localhost:5901
@@ -80,9 +80,6 @@ Once the container is running, you have two options:
 ### Quick Start with Example App
 
 ```bash
-# Start VNC container
-docker run -d --name vnc-desktop -p 6080:6080 -e VNC_PASSWORD=password usersina/vnc-lab-desktop
-
 # Run the example React app
 cd example
 npm install
